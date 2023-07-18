@@ -65,11 +65,27 @@ dependencies {
     debugImplementation 'androidx.compose.ui:ui-tooling'
     debugImplementation 'androidx.compose.ui:ui-test-manifest'
     implementation 'ru.rustore.sdk:billingclient:2.1.0'
+    // buggy class DispatchQueue / RepeatOnLifecycleKt moveout
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
 }
 
 tasks.register('copy_deps', Copy) {
     configurations.implementation.setCanBeResolved(true)
 
-    from configurations.implementation
+    var resolved = configurations.implementation.resolve()
+
+    for(File r: resolved)
+    {
+        if (r.getName().endsWith(".aar"))
+        {
+            println("   aar: " + r.getName())
+            from(zipTree(r)) {
+                include "classes.jar"
+                rename "classes.jar", r.getName().replaceFirst(".aar", ".jar")
+            }
+        }
+        from (r)
+    }
     into '../dependencies'
 }
+
